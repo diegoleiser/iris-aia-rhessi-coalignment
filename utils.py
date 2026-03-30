@@ -119,6 +119,8 @@ def normalize_data(data, low=1, high=99):
         2D array containing the normalized data. Values have been scaled to range [0,1].
 
     """
+    if data.min() < 0:
+        data[data < 0] = 0 # If data contains negative values they are set to 0
     data = np.log10(data + 0.01) # Adding 0.01 to avoid log(0)
     vmin, vmax = np.percentile(data[np.isfinite(data)], (low, high))
     normalized_data = np.clip((data - vmin) / (vmax - vmin), 0, 1)
