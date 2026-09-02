@@ -1,0 +1,16 @@
+# Python 3.10 was used for the MSc thesis analysis.
+aiapy
+astropy
+drms
+image-registration
+irisreader
+joblib
+jupyterlab
+matplotlib
+numpy
+pandas
+reproject
+scikit-image
+scipy
+sunpy
+tqdm

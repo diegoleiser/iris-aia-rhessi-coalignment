@@ -100,7 +100,7 @@ def crop_frame(aia_map, iris_map):
 
 
 
-def normalize_data(data, low=1, high=99):
+def normalize_data(data, low=0, high=100):
     """
     Normalizes image data using logarithmic scaling and percentile clipping.
 
@@ -109,9 +109,9 @@ def normalize_data(data, low=1, high=99):
     data: numpy.ndarray
         2D array containing the data that is normalized.
     low: float, optional
-        Lower percentile used for normalization. Default is 1.
+        Lower percentile used for normalization. Default is 0.
     high: float, optional
-        Upper perecentile used for normalization. Default is 99.
+        Upper percentile used for normalization. Default is 100.
 
     Returns
     ----------
@@ -121,7 +121,7 @@ def normalize_data(data, low=1, high=99):
     """
     if data.min() < 0:
         data[data < 0] = 0 # If data contains negative values they are set to 0
-    data = np.log10(data + 0.01) # Adding 0.01 to avoid log(0)
+    data = np.log10(data + 1) # Adding 1 to avoid log(0)
     vmin, vmax = np.percentile(data[np.isfinite(data)], (low, high))
     normalized_data = np.clip((data - vmin) / (vmax - vmin), 0, 1)
     normalized_data[np.isnan(normalized_data)] = 0
