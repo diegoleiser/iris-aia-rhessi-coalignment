@@ -32,9 +32,9 @@ The color overlays display AIA in orange and IRIS in blue; spatially coincident
 bright structures appear dark. The frame is from an M3.1 flare on 12 June 2014,
 with both observations recorded at 21:03:52 UT.
 
-The fitted correction was 0.82 arcsec in x, -1.22 arcsec in y, and a 0.7 degree
-clockwise rotation. The comparison with a shift-only result shows that the
-translational correction accounts for most of the visible improvement.
+The fitted correction was 0.44 arcsec in x, -1.03 arcsec in y, and a 0.9 degree
+clockwise rotation. The corrected overlays show improved agreement between the
+bright structures observed by both instruments.
 
 ![IRIS-AIA alignment before and after correction](figures/iris_aia_alignment.png)
 
@@ -63,7 +63,7 @@ a Pearson correlation coefficient of 0.580.
 flowchart TD
     A["1. Load observation list<br/>observation ID, start time, end time"]
     B["2. Load observations<br/>IRIS SJI and AIA 1600 Å"]
-    C["3. Match frames in time<br/>closest timestamps within the selected window"]
+    C["3. Match frames in time<br/>closest timestamps within the configured tolerance"]
     D["4. Prepare matched pairs<br/>rotate, crop, and reproject to a common grid"]
     E["5. Normalize images<br/>log transform and percentile scaling"]
     F["6. Perform cross-correlation<br/>translation across a grid of trial rotations"]
@@ -76,7 +76,8 @@ For every selected time window, the workflow:
 
 1. Loads locally obtained IRIS Level 2 slit-jaw observations and AIA 1600 Å
    images.
-2. Matches every IRIS frame to the temporally closest AIA frame.
+2. Matches every IRIS frame to the temporally closest AIA frame, provided that
+   their separation does not exceed `MAX_TIME_DIFFERENCE_SECONDS`.
 3. Rotates the IRIS map to solar north and crops AIA to the IRIS field of view.
 4. Reprojects IRIS onto the AIA World Coordinate System.
 5. Applies logarithmic scaling, percentile clipping, and min-max
@@ -124,7 +125,7 @@ The batch notebook expects a CSV file with exactly three columns:
 
 ```csv
 obsid,start_time,end_time
-20140329_140938_3860258481,2014-03-29T17:45:36,2014-03-29T17:51:41
+20140612_184427_3863605329,2014-06-12T21:03:52,2014-06-12T21:03:53
 ```
 
 Timestamps use ISO format, `YYYY-MM-DDTHH:MM:SS`. A ready-to-edit template is

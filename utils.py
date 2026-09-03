@@ -1,44 +1,27 @@
-import irisreader as ir
-from sunpy.map import Map
-from reproject import reproject_interp
-from astropy.io import fits
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-import matplotlib.pyplot as plt
-import numpy as np
-from scipy.ndimage import rotate
-from skimage.registration import phase_cross_correlation
-from scipy.ndimage import shift
+import csv
+import gzip
+import logging
+import shutil
 from pathlib import Path
-import matplotlib.animation as animation
-from joblib import Parallel, delayed
-import pandas as pd
-from astropy.time import Time
-from sunpy.net import Fido, attrs as a
+
+import astropy.units as u
+import drms
+import numpy as np
 from aiapy.calibrate import register, update_pointing
 from aiapy.calibrate.util import get_pointing_table
-from sunpy.map import MapSequence
-from tqdm import tqdm
-import csv
-import drms
-import gzip, shutil
-from pathlib import Path
-import smtplib, ssl
-from email.message import EmailMessage
+from astropy.io import fits
+from astropy.time import Time
 from image_registration import chi2_shift
-import gc
-import os
+from scipy.ndimage import rotate
+from skimage.registration import phase_cross_correlation
+from sunpy.map import Map
+from sunpy.net import Fido, attrs as a
 
 # mutes some output
-import logging
 log = logging.getLogger('sunpy')
 log.setLevel('WARNING')
 log_reprj = logging.getLogger('reproject')
 log_reprj.setLevel('WARNING')
-
-
-
-
 
 
 def iris_to_sunpy_map(iris_sji, frame):
@@ -70,10 +53,6 @@ def iris_to_sunpy_map(iris_sji, frame):
     return Map(iris_data, map_header)
 
 
-
-
-
-
 def crop_frame(aia_map, iris_map):
     """
     Crops AIA image to IRIS field of view.
@@ -94,10 +73,6 @@ def crop_frame(aia_map, iris_map):
     bl_coord = iris_map.pixel_to_world(0 * u.pix, 0 * u.pix)
     tr_coord = iris_map.pixel_to_world((nx - 1) * u.pix, (ny - 1) * u.pix)
     return aia_map.submap(bottom_left=bl_coord, top_right=tr_coord)
-
-
-
-
 
 
 def normalize_data(data, low=0, high=100):
@@ -126,11 +101,6 @@ def normalize_data(data, low=0, high=100):
     normalized_data = np.clip((data - vmin) / (vmax - vmin), 0, 1)
     normalized_data[np.isnan(normalized_data)] = 0
     return normalized_data
-
-# def normalize_data(data):
-#     norm = data / np.max(data)
-#     return norm
-
 
 
 def find_rotation(aia_data, iris_data, method='chi2', min_angle=-2.0, max_angle=2.001, step=0.05):
@@ -202,7 +172,7 @@ def find_rotation(aia_data, iris_data, method='chi2', min_angle=-2.0, max_angle=
                 best_errx = errx
                 best_erry = erry
 
-        # usese phase_cross_correlation to find best rotation angle and best shift
+        # uses phase_cross_correlation to find best rotation angle and best shift
         elif method == 'phase':
             shift_phase, error, _ = phase_cross_correlation(
                 aia_crop, 
@@ -223,7 +193,7 @@ def find_rotation(aia_data, iris_data, method='chi2', min_angle=-2.0, max_angle=
 
 def align_aia_iris(aia_data, aia_header, iris_data, iris_header, method):
     """
-    Method that calls the whole aligment process. Needs an AIA and an IRIS frame
+    Method that calls the whole alignment process. Needs an AIA and an IRIS frame
     as input and gives out the results obtained by find_rotation.
 
     Parameters
@@ -262,11 +232,8 @@ def align_aia_iris(aia_data, aia_header, iris_data, iris_header, method):
     # Reproject IRIS onto AIA WCS
     iris_reprojected = iris_map.reproject_to(cropped_aia_map.wcs)
 
-
     best_angle, best_shift, best_err, best_errx, best_erry = find_rotation(cropped_aia_map.data, iris_reprojected.data, method=method)
     return best_shift, best_angle, best_errx, best_erry, best_err
-
-
 
 
 def find_matching_frames(iris_times_s, aia_times_s, start_s, end_s, delta_t=24):
@@ -311,10 +278,6 @@ def find_matching_frames(iris_times_s, aia_times_s, start_s, end_s, delta_t=24):
         if time_differences[aia_idx] <= delta_t:
             matching_frames.append((aia_idx, iris_idx))
     return matching_frames
-
-
-
-
 
 
 def write_to_file(out_file, observation_id, matches, results, iris_times_s, aia_times_s):
@@ -395,7 +358,6 @@ def write_to_file(out_file, observation_id, matches, results, iris_times_s, aia_
         if wrote_any:
             w.writerow([])
 
-            
 
 def write_error_row(out_file, observation_id, message):
     """
@@ -432,7 +394,6 @@ def write_error_row(out_file, observation_id, message):
         w.writerow([])
 
 
-
 def unpack_gz_files(paths):
     """
     Unpacks files with .gz compression. Deletes the .gz afterwards, leaving only the data.
@@ -459,7 +420,6 @@ def unpack_gz_files(paths):
         else:
             out.append(str(path))
     return out
-
 
 
 def fetch_iris_sji(start_time, end_time, outdir):
@@ -502,7 +462,6 @@ def fetch_iris_sji(start_time, end_time, outdir):
     return []
 
 
-
 def fetch_cropped_aia(bottom_left, top_right, start_time, end_time, outdir, email):
     """
     Downloads AIA data of the given time window that is already cropped to the IRIS field of view.
@@ -539,9 +498,6 @@ def fetch_cropped_aia(bottom_left, top_right, start_time, end_time, outdir, emai
         return [str(f) for f in files]
     print("No 1600 Å was found.")
     return []
-
-
-
 
 
 def fetch_cropped_l15_aia(start_time, end_time, bottom_left, top_right, outdir, email):
@@ -614,10 +570,6 @@ def fetch_cropped_l15_aia(start_time, end_time, bottom_left, top_right, outdir, 
 
     files = request.download(outdir)
     return [str(f) for f in files["download"]]
-
-    
-
-
 
 
 def get_level1_5_maps(aia_files):
