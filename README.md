@@ -88,40 +88,35 @@ For every selected time window, the workflow:
 
 Frame-level computations are parallelized with Joblib.
 
-## Architecture
+## Repository contents
 
 ```text
-Notebook workflows
-|
-|-- Automated IRIS-AIA batch alignment
-|   |-- observation-list input and local FITS discovery
-|   |-- temporal frame matching
-|   |-- rotation, cropping, reprojection and normalization
-|   |-- chi-squared cross-correlation across trial angles
-|   `-- TSV output with shifts, uncertainties and fit metrics
-|
-|-- Alignment-result application
-|   |-- select one fitted IRIS-AIA frame pair
-|   |-- apply the stored rotation and translation
-|   `-- render contour and color-overlay comparisons
-|
-`-- Rotation-based RHESSI-IRIS case study
-    |-- start from an IRIS frame corrected against AIA
-    |-- reproject RHESSI onto the IRIS grid
-    |-- scan solar-center rotation angles
-    `-- select the maximum Pearson correlation
-
-Shared processing layer (utils.py)
-|-- IRIS and AIA acquisition helpers
-|-- SunPy map conversion and spatial preparation
-|-- temporal matching and image co-alignment
-`-- result and error-table writers
+.
+├── README.md
+├── utils.py
+├── examples/
+│   ├── iris_aia_batch_alignment.ipynb
+│   ├── apply_iris_aia_alignment.ipynb
+│   └── rhessi_iris_alignment.ipynb
+├── figures/
+│   ├── iris_aia_alignment.png
+│   ├── rhessi_iris_alignment.png
+│   └── rhessi_rotation_score.png
+├── sample_data/
+│   └── observation_list.csv
+├── requirements.txt
+├── LICENSE
+└── .gitignore
 ```
 
-The three entry points are
-[`iris_aia_batch_alignment.ipynb`](examples/iris_aia_batch_alignment.ipynb),
-[`apply_iris_aia_alignment.ipynb`](examples/apply_iris_aia_alignment.ipynb),
-and [`rhessi_iris_alignment.ipynb`](examples/rhessi_iris_alignment.ipynb).
+- `utils.py` contains the core IRIS-AIA preparation, alignment, data-download,
+  and result-writing functions used for the thesis analysis.
+- `examples/iris_aia_batch_alignment.ipynb` demonstrates the automated batch
+  workflow and writes the fitted parameters to a TSV file.
+- `examples/apply_iris_aia_alignment.ipynb` shows how one row from the result
+  table is applied to the corresponding IRIS frame and visualized against AIA.
+- `examples/rhessi_iris_alignment.ipynb` reproduces the rotation-based
+  RHESSI-IRIS case study.
 
 ## Observation list format
 
