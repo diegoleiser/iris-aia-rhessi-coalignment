@@ -157,11 +157,11 @@ The expected IRIS-AIA layout is:
 
 ```text
 data/
-|-- <IRIS observation ID>/
-|   |-- iris_l2_...fits
-|   |-- aia....image.fits
-|   `-- ...
-`-- hsi_image_20140329_174613.fits
+├── <IRIS observation ID>/
+│   ├── iris_l2_...fits
+│   ├── aia....image.fits
+│   └── ...
+└── hsi_image_20140329_174613.fits
 ```
 
 The RHESSI example expects its reconstructed FITS image directly in `data/`
