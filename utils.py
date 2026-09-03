@@ -269,9 +269,9 @@ def align_aia_iris(aia_data, aia_header, iris_data, iris_header, method):
 
 
 
-def find_matching_frames(iris_times_s, aia_times_s, start_s, end_s, delta_t = 24):
+def find_matching_frames(iris_times_s, aia_times_s, start_s, end_s, delta_t=24):
     """
-    Matches IRIS frames to the closest AIA frames in an given time window. 
+    Matches IRIS frames to the closest AIA frames in a given time window.
 
     Parameters
     ----------
@@ -284,23 +284,32 @@ def find_matching_frames(iris_times_s, aia_times_s, start_s, end_s, delta_t = 24
     end_s: float
         End time of the target window in seconds.
     delta_t: float, optional
-        Time to add before and after the window for both IRIS and AIA. Default is 24 seconds.
+        Maximum allowed absolute time difference between an IRIS frame and its
+        closest AIA frame. Default is 24 seconds.
 
     Returns
     -----------
     matching_frames: list of tuple
-        List of matched IRIS and AIA frame indices (aia_idx, iris_idx).
+        List of matched frame indices in ``(aia_idx, iris_idx)`` order.
     """
-    matching_frames = []
+    if delta_t < 0:
+        raise ValueError("delta_t must be non-negative.")
 
-    iris_in_window = np.where((iris_times_s >= start_s - delta_t) & (iris_times_s <= end_s + delta_t))[0]
-    aia_in_window = np.where((aia_times_s >= start_s - delta_t) & (aia_times_s <= end_s + delta_t))[0]
+    iris_times_s = np.asarray(iris_times_s)
+    aia_times_s = np.asarray(aia_times_s)
+    if aia_times_s.size == 0:
+        return []
+
+    matching_frames = []
+    iris_in_window = np.where(
+        (iris_times_s >= start_s) & (iris_times_s <= end_s)
+    )[0]
 
     for iris_idx in iris_in_window:
-        iris_t = iris_times_s[iris_idx]
-        matched_aia_frame = np.argmin(np.abs(aia_times_s[aia_in_window] - iris_t))
-        aia_idx = aia_in_window[matched_aia_frame]
-        matching_frames.append((aia_idx, iris_idx))
+        time_differences = np.abs(aia_times_s - iris_times_s[iris_idx])
+        aia_idx = int(np.argmin(time_differences))
+        if time_differences[aia_idx] <= delta_t:
+            matching_frames.append((aia_idx, iris_idx))
     return matching_frames
 
 

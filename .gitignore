@@ -9,6 +9,9 @@ __pycache__/
 # Jupyter
 .ipynb_checkpoints/
 
+# Local data-download workflow
+examples/download_aia_for_iris.ipynb
+
 # Local observations and generated results
 data/
 outputs/

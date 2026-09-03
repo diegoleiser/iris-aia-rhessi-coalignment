@@ -104,6 +104,8 @@ Frame-level computations are parallelized with Joblib.
 |   `-- rhessi_rotation_score.png
 |-- sample_data/
 |   `-- observation_list.csv
+|-- tests/
+|   `-- test_frame_matching.py
 |-- requirements.txt
 |-- LICENSE
 `-- .gitignore
@@ -117,6 +119,8 @@ Frame-level computations are parallelized with Joblib.
   table is applied to the corresponding IRIS frame and visualized against AIA.
 - `examples/rhessi_iris_alignment.ipynb` reproduces the rotation-based
   RHESSI-IRIS case study.
+- `tests/test_frame_matching.py` checks the temporal frame-selection boundaries
+  and maximum allowed IRIS-AIA time difference.
 
 ## Observation list format
 
@@ -143,8 +147,8 @@ python -m pip install -r requirements.txt
 jupyter lab
 ```
 
-The repository does not contain the observational FITS files. Update the paths
-in the notebook configuration cells before running an example.
+The repository does not contain the observational FITS files. Place them in the
+layout described below or update `DATA_DIR` in the notebook configuration cells.
 
 ## Data availability
 
@@ -157,14 +161,24 @@ The expected IRIS-AIA layout is:
 
 ```text
 data/
-`-- <IRIS observation ID>/
-    |-- iris_l2_...fits
-    |-- aia....image.fits
-    `-- ...
+|-- <IRIS observation ID>/
+|   |-- iris_l2_...fits
+|   |-- aia....image.fits
+|   `-- ...
+`-- hsi_image_20140329_174613.fits
 ```
+
+The RHESSI example expects its reconstructed FITS image directly in `data/`
+and its matching IRIS observation in the observation-ID subdirectory.
 
 Some AIA downloads require an email address registered with the JSOC export
 service. The download helpers in `utils.py` document the required parameters.
+
+Run the frame-matching checks from the repository root with:
+
+```bash
+python -m unittest discover -s tests -v
+```
 
 The figures shown above are results from the MSc thesis analysis and are
 included so that the scientific outcome remains visible without redistributing
